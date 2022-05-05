@@ -1,0 +1,150 @@
+---
+title: "202230 Midquarter Evaluations"
+author: "Akio Correll"
+date: "5/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Add Libraries
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+# Import dataset (Make sure you save the xlsx file as a csv).
+```{r}
+#d1 <- read.csv("data/Midquarter202230-all.csv", header=TRUE)
+d1 <- read.csv("data/Midquarter202230-msw@den.csv", header=TRUE)
+d2 <- read.csv("data/QuestionMapper202230.csv", header=TRUE)
+```
+
+# Response Rate
+### The response rate is to examine who has high/low response rates. Response rates are important in understanding whether or not we are receiving sufficent information on the instructor. 
+
+## dResponseRateSec
+###Instructor's response rate by course section, which may shed light on the feedback surrounding the learning experience at the course section level. 
+
+## dResponseRateCourse 
+### Instructor's response rate by course. This means, if an instructor is teaching multiple sections of a course, the information may shed light on the fitness of the course for the instrutor.
+```{r}
+dUniqInstructors <- d1 %>%
+  group_by(CourseCode,InstructorName,ResponseRate,Enrollments) %>%
+  dplyr::summarize(unique(InstructorName))
+
+dResponseRateInstrSec <- dUniqInstructors %>%
+  select(CourseCode,InstructorName,ResponseRate,Enrollments) %>%
+  group_by(CourseCode,InstructorName,ResponseRate,Enrollments)
+
+dShortenCourseCode <- within(dResponseRateInstrSec, {
+  CourseCode <- substr(CourseCode, 6,9)
+})
+
+dResponseRateWide <- dShortenCourseCode %>%
+  pivot_wider(names_from = CourseCode, values_from = c(ResponseRate, Enrollments), values_fn = list(ResponseRate = mean, Enrollments = sum))
+
+
+# this makes dResponseRateWide into long form. It separates the type of data (ie Response Rate vs Enrollment) and Course Number into two separate columns. It filters any NAs and empties
+dResponseTypeLong <- dResponseRateWide %>%
+  pivot_longer(!InstructorName, names_to = c("Type", "CourseCode"), names_sep = "_", values_to = "value") %>%
+  filter(!is.na(value)) %>%
+  filter(value!="")
+
+#This pivots the dResponseType Long into a wider format so that we know what the instructor's response rate is based on the aggregate of course sections taught. In other words, if an instructor is teaching two sections of a course, we get the aggregate of the two
+dResponseRateInstrCourse <- dResponseTypeLong %>%
+  pivot_wider(names_from = Type, values_from = value)
+
+
+#Remove the InstructorName column
+  dRemInstr = subset(dShortenCourseCode, select = -c(InstructorName))
+
+dResponseRateCourseWide <- dRemInstr %>%
+  pivot_wider(names_from = CourseCode, values_from = c(ResponseRate, Enrollments), values_fn = list(ResponseRate = mean, Enrollments = sum)) 
+
+
+```
+
+#Analysis of Quantitative Data
+
+
+## d1QuantSecMeanMed
+### An analysis of Mean/Median scores for instructorsat the section level
+```{r}
+#Format only the Quantitative Data
+d1Quant <- d1[, c("LevelName", "CourseCode", "CourseTitle", "InstructorName", "Respondents", "Enrollments", "ResponseRate", "Enrollments", "Question.1", "Question.2", "Question.3", "Question.4", "Question.5", "Question.6")]
+
+
+d1QuantSecMeanMed <- d1Quant %>%
+  pivot_longer(cols = starts_with("Question"), names_to = "Question", values_to = "Score") %>%
+    group_by(CourseCode,InstructorName,Respondents,Question) %>%
+  filter(!is.na(Score)) %>%
+  filter(Score!="") %>%
+  dplyr::summarize(MeanScore=mean(Score), Median=median(Score)) %>%
+  mutate(Mean = round(MeanScore, 1))
+
+for(c in d2$QuestionShort){
+  d1QuantSecMeanMedQ <- inner_join(d1QuantSecMeanMed, d2)
+}
+
+d1QuantSecMeanMedQ <- d1QuantSecMeanMedQ %>%
+  select(CourseCode,InstructorName,QuestionShort,Respondents,Mean,Median,) %>%
+  group_by(CourseCode,InstructorName,QuestionShort,Respondents,Mean,Median)
+
+
+#write.csv(d1QuantSecMeanMedQ,"Mid-Eval-202230-MeanMedian-all.csv", row.names = FALSE)
+write.csv(d1QuantSecMeanMedQ,"Mid-Eval-202230-MeanMedian-msw@den.csv", row.names = FALSE)
+
+```
+#Analysis of Qualitative Data
+
+
+## d1QualSecMeanMed
+```{r}
+#Format only the Quantitative Data
+d1Qual <- d1[, c("LevelName", "CourseCode", "CourseTitle", "InstructorName", "Respondents", "Enrollments", "ResponseRate", "Enrollments", "Question.7", "Question.8", "Question.9", "Question.10")]
+```
+
+
+# ```{r}
+# dLong <- d1 %>%
+#   pivot_longer(cols = starts_with("Question"), names_to = "question", values_to = "score")
+# ```
+
+//d1a <- d1[, c("CourseCode", "CourseTitle", "InstructorName", "ResponseRate")]
+
+# ```{r}
+# d1a <- d1 %>%
+#   select(cols=starts_with("Question"))
+#   # print(ncol(d1a))
+# 
+#   numcol <- (ncol(d1a))
+#   # print(numcol)
+# 
+# for (i in 0:(numcol-1)){
+#   x <- i+1
+#   print(x)
+#   print(paste)
+# }
+#  
+# i <- 10
+# 
+# for (i in 1:ncol(d1a)) {
+#   print(paste("col",i,sep="."))
+# }
+# 
+# ```
+
+# ```{r}
+# d3 <- d1 %>%
+#   pivot_longer(cols = starts_with("Question"), names_to ="question", values_to = "score") %>%
+#     filter(!is.na(comment)) %>%
+#   filter(comment!="")
+# ```
+
+
+
+
