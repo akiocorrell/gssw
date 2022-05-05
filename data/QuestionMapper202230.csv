@@ -1,0 +1,11 @@
+﻿Question,Question Description,QuestionShort
+Question.1,Please rate the following - The instructor is knowledgeable about the subject matter,Instructor_Knowledge
+Question.2,Please rate the following - Course assignments have clear expectations,Assignment_Expectations
+Question.3,Please rate the following - The instructor has clear expectations about participation in this course,Participation_Expectations
+Question.4,Please rate the following - The content of live sessions (on Zoom or on-campus) supports my application of the asynchronous material,Live_Sessions
+Question.5,"Please rate the following - The instructor linked the course content to issues of power, privilege, and oppression",PPO_Link
+Question.6,Please rate the following - Navigating the course in the learning management system (Canvas or 2DU) was intuitive,LMS_Navigation
+Question.7,What should your instructor keep doing to support your learning?,QualSupport
+Question.8,What concerns or barriers are impacting your ability to learn in this course so far?,Qual_Concerns
+Question.9,What could your instructor modify to support your learning?,Qual_Instructor_Mods
+Question.10,Please provide any additional feedback or comments relating to this course or instructor.,Qual_Additional
